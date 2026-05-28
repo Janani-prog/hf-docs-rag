@@ -1,0 +1,15 @@
+{
+  "current_version": "v2",
+  "versions": {
+    "v1": {
+      "file": "prompts/v1/rag_answer.txt",
+      "description": "Initial prompt with citation enforcement",
+      "created_at": "2026-05-28"
+    },
+    "v2": {
+      "file": "prompts/v2/rag_answer.txt",
+      "description": "Stricter refusal, exact terminology preference",
+      "created_at": "2026-05-28"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+README.md
+setup.py
+hf_docs_rag.egg-info/PKG-INFO
+hf_docs_rag.egg-info/SOURCES.txt
+hf_docs_rag.egg-info/dependency_links.txt
+hf_docs_rag.egg-info/top_level.txt
