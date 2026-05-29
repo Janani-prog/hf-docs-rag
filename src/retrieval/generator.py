@@ -1,28 +1,20 @@
 import os
 import re
+import time
 from groq import Groq
 from dotenv import load_dotenv
 from src.retrieval.hybrid import search as hybrid_search
 from src.retrieval.reranker import rerank
 from src.retrieval.prompt_manager import get_prompt, get_current_version
+from src.monitoring.langfuse_tracer import RAGTrace, flush
 
 load_dotenv()
 
 GROQ_MODEL = "llama-3.3-70b-versatile"
 MAX_CONTEXT_CHUNKS = 5
-PROMPT_PATH = "prompts/v1/rag_answer.txt"
-
-
-def load_prompt_template() -> str:
-    with open(PROMPT_PATH, encoding="utf-8") as f:
-        return f.read()
 
 
 def build_context(chunks: list[dict]) -> str:
-    """
-    Formats retrieved chunks into a numbered context block.
-    The numbers correspond to citation markers [1], [2] etc in the answer.
-    """
     parts = []
     for i, chunk in enumerate(chunks, start=1):
         parts.append(
@@ -34,13 +26,8 @@ def build_context(chunks: list[dict]) -> str:
 
 
 def extract_citations(answer: str, chunks: list[dict]) -> list[dict]:
-    """
-    Parses [N] markers from the answer and maps them back to source chunks.
-    Any citation number that doesn't match a real chunk is flagged as invalid.
-    """
     cited_numbers = set(int(n) for n in re.findall(r"\[(\d+)\]", answer))
     citations = []
-
     for n in sorted(cited_numbers):
         if 1 <= n <= len(chunks):
             chunk = chunks[n - 1]
@@ -57,46 +44,55 @@ def extract_citations(answer: str, chunks: list[dict]) -> list[dict]:
                 "valid": False,
                 "reason": f"[{n}] cited but only {len(chunks)} chunks provided"
             })
-
     return citations
 
 
 def query(question: str) -> dict:
-    """
-    Full RAG pipeline for a single question:
-    1. Retrieve top-k relevant chunks via vector search
-    2. Build numbered context block
-    3. Call Groq LLM with prompt + context
-    4. Parse citations and validate them
-    5. Return structured response
-    """
-    # Step 1: retrieve
-    raw_chunks = hybrid_search(question, k=10)
-    chunks = rerank(question, raw_chunks, top_k=5)
+    trace = RAGTrace(question=question, model=GROQ_MODEL)
 
-    # Step 2: build context
+    # Step 1: Hybrid retrieval
+    t0 = time.time()
+    raw_chunks = hybrid_search(question, k=10)
+    chunks = rerank(question, raw_chunks, top_k=MAX_CONTEXT_CHUNKS)
+    retrieval_ms = (time.time() - t0) * 1000
+    trace.log_retrieval(question, chunks, retrieval_ms)
+
+    # Step 2: Build context
     context = build_context(chunks)
 
-
-    # Step 3: load prompt from registry (version-controlled)
+    # Step 3: Load versioned prompt
     prompt_version = get_current_version()
     template = get_prompt(prompt_version)
     prompt = template.replace("{context}", context).replace("{question}", question)
 
-    # Step 4: call LLM
+    # Step 4: Call LLM
+    t1 = time.time()
     client = Groq(api_key=os.getenv("GROQ_API_KEY"))
     response = client.chat.completions.create(
         model=GROQ_MODEL,
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.0,  # deterministic — we want factual, not creative
+        temperature=0.0,
     )
-
+    generation_ms = (time.time() - t1) * 1000
     answer = response.choices[0].message.content.strip()
     usage = response.usage
 
-    # Step 5: validate citations
+    trace.log_generation(
+        prompt, answer,
+        tokens=usage.total_tokens,
+        latency_ms=generation_ms,
+        prompt_version=prompt_version,
+        model=GROQ_MODEL,
+    )
+
+    # Step 5: Validate citations
     citations = extract_citations(answer, chunks)
     invalid = [c for c in citations if not c["valid"]]
+    coverage = len([c for c in citations if c["valid"]]) / max(len(citations), 1)
+    trace.log_citation_validation(len(invalid) == 0, len(citations), coverage)
+    trace.finalize(answer, retrieval_ms + generation_ms)
+
+    flush()
 
     return {
         "question": question,
@@ -107,5 +103,10 @@ def query(question: str) -> dict:
         "retrieved_chunks": len(chunks),
         "tokens_used": usage.total_tokens,
         "model": GROQ_MODEL,
-        "prompt_version": prompt_version,   # add this line
+        "prompt_version": prompt_version,
+        "latency": {
+            "retrieval_ms": round(retrieval_ms, 2),
+            "generation_ms": round(generation_ms, 2),
+            "total_ms": round(retrieval_ms + generation_ms, 2),
+        }
     }
