@@ -373,47 +373,39 @@ Answers are grounded in retrieved source passages. Every claim is cited.</p>
 </div>
 """)
 
-    with gr.Row(equal_height=False):
-        with gr.Column(scale=3):
-            gr.Markdown('<div class="section-label">Query</div>')
-            question = gr.Textbox(
-                show_label=False,
-                placeholder="Ask a question about Transformers, Datasets, PEFT, or Tokenizers...",
-                lines=3,
-            )
-            submit = gr.Button("Run Query", variant="primary")
+    
+    gr.Markdown("### Query")
 
-        with gr.Column(scale=1):
-            gr.Markdown('<div class="section-label">Examples</div>')
-            for ex in EXAMPLES:
-                gr.Button(ex, variant="secondary", size="sm").click(
-                    fn=lambda q=ex: q, outputs=question
-                )
-
-    gr.Markdown(
-        '<div class="section-label" style="margin-top:28px">Pipeline</div>'
+    question = gr.Textbox(
+        show_label=False,
+        placeholder="Ask a question about Transformers, Datasets, PEFT, or Tokenizers...",
+        lines=3,
     )
+
+    submit = gr.Button("Run Query", variant="primary")
+
+    gr.Markdown("### Examples")
+
+    for ex in EXAMPLES:
+        gr.Button(ex, variant="secondary", size="sm").click(
+            fn=lambda q=ex: q,
+            outputs=question,
+        )
+
+    gr.Markdown("### Pipeline Trace")
+
     pipeline_out = gr.Markdown(
         value="*Waiting for query...*",
         elem_classes=["pipeline-panel"]
     )
 
-    gr.Markdown(
-        '<div class="section-label" style="margin-top:20px">Answer</div>'
-    )
+    gr.Markdown("### Answer")
+
     answer_out = gr.Markdown(elem_classes=["prose"])
 
-    gr.Markdown(
-        '<div class="section-label" style="margin-top:20px">Sources</div>'
-    )
+    gr.Markdown("### Sources")
     sources_out = gr.Markdown(elem_classes=["sources-panel"])
 
-    gr.Markdown("""
----
-<div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#333;text-align:center;padding:4px 0">
-query → hybrid search (BM25 + vector) → RRF fusion → cross-encoder rerank → llm generation → citation validation
-</div>
-""")
 
     submit.click(
         fn=run_pipeline,
