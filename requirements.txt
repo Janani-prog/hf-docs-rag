@@ -15,4 +15,5 @@ langchain-core
 langchain-openai
 ragas==0.1.21
 langfuse
-gradio
+gradio==5.32.1
+pyaudioop
