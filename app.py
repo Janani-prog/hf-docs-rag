@@ -30,7 +30,7 @@ CUSTOM_CSS = """
 
 body, .gradio-container {
     background: #0d0d0d !important;
-    color: #d4d4d4 !important;
+    color: #f5f5f5 !important;
     font-family: 'IBM Plex Sans', sans-serif !important;
 }
 
@@ -68,7 +68,7 @@ body, .gradio-container {
     display: inline-block;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
-    color: #777;
+    color: #bdbdbd;
     border: 1px solid #2a2a2a;
     padding: 3px 9px;
     margin-right: 6px;
@@ -159,24 +159,24 @@ button.secondary:hover {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
     line-height: 2;
-    color: #777;
+    color: #c0c0c0;
     min-height: 80px;
 }
 
 .pipeline-panel .step-done { color: #6a9955; }
-.pipeline-panel .step-active { color: #d4d4d4; }
+.pipeline-panel .step-active { color: #f5f5f5; }
 .pipeline-panel .step-pending { color: #333; }
 
 /* Answer panel */
 .prose {
-    background: #0a0a0a !important;
-    border: 1px solid #1e1e1e !important;
+    background: #121212 !important;
+    border: 1px solid #3a3a3a !important;
     padding: 20px !important;
     min-height: 100px !important;
 }
 
 .prose p {
-    color: #d4d4d4 !important;
+    color: #fafafa  !important;
     font-size: 14px !important;
     line-height: 1.85 !important;
     margin-bottom: 14px !important;
@@ -219,7 +219,7 @@ button.secondary:hover {
 .sources-panel p {
     font-family: 'IBM Plex Mono', monospace !important;
     font-size: 11px !important;
-    color: #666 !important;
+    color: #d0d0d0  !important;
     line-height: 2 !important;
 }
 
