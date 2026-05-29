@@ -1,6 +1,6 @@
 ---
 title: HF Docs RAG
-emoji: none
+emoji: 🤗
 colorFrom: gray
 colorTo: gray
 sdk: gradio
