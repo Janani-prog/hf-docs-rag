@@ -7,6 +7,7 @@ from src.retrieval.hybrid import search as hybrid_search
 from src.retrieval.reranker import rerank
 from src.retrieval.prompt_manager import get_prompt, get_current_version
 from src.monitoring.langfuse_tracer import RAGTrace, flush
+from src.schemas import Citation, RAGResponse
 
 load_dotenv()
 
@@ -25,29 +26,29 @@ def build_context(chunks: list[dict]) -> str:
     return "\n\n---\n\n".join(parts)
 
 
-def extract_citations(answer: str, chunks: list[dict]) -> list[dict]:
+def extract_citations(answer: str, chunks: list[dict]) -> list[Citation]:
     cited_numbers = set(int(n) for n in re.findall(r"\[(\d+)\]", answer))
     citations = []
     for n in sorted(cited_numbers):
         if 1 <= n <= len(chunks):
             chunk = chunks[n - 1]
-            citations.append({
-                "number": n,
-                "source_url": chunk["source_url"],
-                "title": chunk["title"],
-                "snippet": chunk["text"][:150] + "...",
-                "valid": True
-            })
+            citations.append(Citation(
+                number=n,
+                source_url=chunk["source_url"],
+                title=chunk["title"],
+                snippet=chunk["text"][:150] + "...",
+                valid=True
+            ))
         else:
-            citations.append({
-                "number": n,
-                "valid": False,
-                "reason": f"[{n}] cited but only {len(chunks)} chunks provided"
-            })
+            citations.append(Citation(
+                number=n,
+                valid=False,
+                reason=f"[{n}] cited but only {len(chunks)} chunks provided"
+            ))
     return citations
 
 
-def query(question: str) -> dict:
+def query(question: str) -> RAGResponse:
     trace = RAGTrace(question=question, model=GROQ_MODEL)
 
     # Step 1: Hybrid retrieval
@@ -67,8 +68,8 @@ def query(question: str) -> dict:
 
     # Step 4: Call LLM
     t1 = time.time()
-    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-    response = client.chat.completions.create(
+    groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+    response = groq_client.chat.completions.create(
         model=GROQ_MODEL,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.0,
@@ -87,26 +88,25 @@ def query(question: str) -> dict:
 
     # Step 5: Validate citations
     citations = extract_citations(answer, chunks)
-    invalid = [c for c in citations if not c["valid"]]
-    coverage = len([c for c in citations if c["valid"]]) / max(len(citations), 1)
+    invalid = [c for c in citations if not c.valid]
+    coverage = len([c for c in citations if c.valid]) / max(len(citations), 1)
     trace.log_citation_validation(len(invalid) == 0, len(citations), coverage)
     trace.finalize(answer, retrieval_ms + generation_ms)
-
     flush()
 
-    return {
-        "question": question,
-        "answer": answer,
-        "citations": citations,
-        "citation_valid": len(invalid) == 0,
-        "insufficient_context": answer.strip() == "INSUFFICIENT_CONTEXT",
-        "retrieved_chunks": len(chunks),
-        "tokens_used": usage.total_tokens,
-        "model": GROQ_MODEL,
-        "prompt_version": prompt_version,
-        "latency": {
+    return RAGResponse(
+        question=question,
+        answer=answer,
+        citations=citations,
+        citation_valid=len(invalid) == 0,
+        insufficient_context=answer.strip() == "INSUFFICIENT_CONTEXT",
+        retrieved_chunks=len(chunks),
+        tokens_used=usage.total_tokens,
+        model=GROQ_MODEL,
+        prompt_version=prompt_version,
+        latency={
             "retrieval_ms": round(retrieval_ms, 2),
             "generation_ms": round(generation_ms, 2),
             "total_ms": round(retrieval_ms + generation_ms, 2),
         }
-    }
+    )

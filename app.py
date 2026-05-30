@@ -31,13 +31,10 @@ CSS = """
     --border:    #1f1f1f;
     --border2:   #2a2a2a;
     --text:      #e8e8e8;
-    --text-dim:  #888;
-    --text-faint:#444;
-    --accent:    #e8e8e8;
-    --green:     #4ade80;
-    --amber:     #fbbf24;
+    --text-dim:  #999;
+    --text-faint:#555;
     --blue:      #60a5fa;
-    --red:       #f87171;
+    --green:     #4ade80;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,39 +44,46 @@ html, body, .gradio-container {
     color: var(--text) !important;
     font-family: 'Geist', sans-serif !important;
     font-size: 14px !important;
+    height: 100% !important;
 }
 
 .gradio-container {
-    max-width: 1100px !important;
-    margin: 0 auto !important;
+    max-width: 100% !important;
     padding: 0 !important;
+    margin: 0 !important;
 }
 
 /* ── Header ── */
 .hdr {
-    padding: 28px 36px 24px;
+    padding: 20px 32px;
     border-bottom: 1px solid var(--border);
     display: flex;
-    align-items: baseline;
-    gap: 24px;
+    align-items: center;
+    gap: 20px;
+    background: var(--bg);
 }
 .hdr-title {
     font-family: 'Geist Mono', monospace;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--text);
-    letter-spacing: .12em;
+    letter-spacing: .14em;
     text-transform: uppercase;
+    white-space: nowrap;
+}
+.hdr-sep {
+    width: 1px;
+    height: 16px;
+    background: var(--border2);
 }
 .hdr-sub {
     font-size: 12px;
-    color: var(--text-dim);
-    line-height: 1;
+    color: var(--text-faint);
 }
-.hdr-tags {
+.hdr-chips {
     margin-left: auto;
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
     justify-content: flex-end;
 }
@@ -91,47 +95,52 @@ html, body, .gradio-container {
     color: var(--text-faint);
     border: 1px solid var(--border);
     padding: 3px 8px;
+    white-space: nowrap;
 }
 
-/* ── Main layout ── */
-.main-grid {
-    display: grid;
-    grid-template-columns: 1fr 260px;
-    min-height: calc(100vh - 73px);
+/* ── Body layout ── */
+.body-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 280px !important;
+    height: calc(100vh - 61px) !important;
+    overflow: hidden !important;
 }
 
-/* ── Left panel ── */
-.left-panel {
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
+/* ── Left column ── */
+.left-col {
+    display: flex !important;
+    flex-direction: column !important;
+    border-right: 1px solid var(--border) !important;
+    overflow: hidden !important;
 }
 
-.query-block {
-    padding: 24px 28px 20px;
-    border-bottom: 1px solid var(--border);
+/* Query area */
+.query-area {
+    padding: 20px 24px 16px !important;
+    border-bottom: 1px solid var(--border) !important;
+    flex-shrink: 0 !important;
 }
 
 .field-label {
     font-family: 'Geist Mono', monospace;
     font-size: 9px;
-    letter-spacing: .14em;
+    letter-spacing: .16em;
     text-transform: uppercase;
     color: var(--text-faint);
     margin-bottom: 8px;
 }
 
 textarea {
-    width: 100% !important;
     background: var(--surface) !important;
     border: 1px solid var(--border2) !important;
     border-radius: 2px !important;
     color: var(--text) !important;
     font-family: 'Geist Mono', monospace !important;
     font-size: 13px !important;
-    line-height: 1.65 !important;
+    line-height: 1.6 !important;
     padding: 12px 14px !important;
     resize: none !important;
+    width: 100% !important;
     transition: border-color .12s !important;
 }
 textarea:focus {
@@ -141,9 +150,8 @@ textarea:focus {
 }
 textarea::placeholder { color: var(--text-faint) !important; }
 
-/* Run button */
 button.primary {
-    margin-top: 12px !important;
+    margin-top: 10px !important;
     width: 100% !important;
     background: var(--text) !important;
     color: var(--bg) !important;
@@ -154,63 +162,55 @@ button.primary {
     font-weight: 600 !important;
     letter-spacing: .12em !important;
     text-transform: uppercase !important;
-    padding: 13px !important;
+    padding: 12px !important;
     cursor: pointer !important;
-    position: relative !important;
-    transition: background .12s !important;
+    transition: background .12s, opacity .12s !important;
 }
-button.primary:hover  { background: #d0d0d0 !important; }
-button.primary:active { background: #b8b8b8 !important; }
-
-/* Loading pulse on button */
-button.primary.generating {
-    background: var(--surface) !important;
-    color: var(--text-dim) !important;
-    border: 1px solid var(--border2) !important;
-    animation: pulse-btn 1.4s ease-in-out infinite !important;
-}
-@keyframes pulse-btn {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: .5; }
+button.primary:hover  { background: #ccc !important; }
+button.primary:disabled {
+    opacity: .35 !important;
+    cursor: not-allowed !important;
 }
 
 /* Pipeline trace */
-.trace-block {
-    padding: 20px 28px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
+.trace-area {
+    padding: 16px 24px !important;
+    border-bottom: 1px solid var(--border) !important;
+    flex-shrink: 0 !important;
+    min-height: 120px !important;
 }
-.trace-block .prose,
-.trace-block .prose * {
+.trace-area .prose,
+.trace-area .prose * {
     font-family: 'Geist Mono', monospace !important;
-    font-size: 12px !important;
-    line-height: 2 !important;
+    font-size: 11px !important;
+    line-height: 2.1 !important;
     color: var(--text-dim) !important;
     background: transparent !important;
     border: none !important;
+    padding: 0 !important;
 }
-.trace-block .prose code {
-    font-family: 'Geist Mono', monospace !important;
+.trace-area .prose code {
     font-size: 11px !important;
     background: var(--surface) !important;
     border: 1px solid var(--border) !important;
-    padding: 1px 6px !important;
-    border-radius: 2px !important;
+    padding: 1px 5px !important;
     color: var(--text-dim) !important;
 }
+.trace-area .prose em { color: var(--text-faint) !important; }
 
-/* Answer */
-.answer-block {
-    padding: 24px 28px;
-    flex: 1;
+/* Answer area */
+.answer-area {
+    padding: 20px 24px !important;
+    flex: 1 !important;
+    overflow-y: auto !important;
 }
-.answer-block .prose p {
+.answer-area .prose p {
     color: var(--text) !important;
     font-size: 14px !important;
-    line-height: 1.85 !important;
-    margin-bottom: 14px !important;
+    line-height: 1.9 !important;
+    margin-bottom: 16px !important;
 }
-.answer-block .prose code {
+.answer-area .prose code {
     font-family: 'Geist Mono', monospace !important;
     font-size: 12px !important;
     background: var(--surface) !important;
@@ -218,7 +218,7 @@ button.primary.generating {
     padding: 2px 7px !important;
     color: var(--blue) !important;
 }
-.answer-block .prose pre {
+.answer-area .prose pre {
     background: var(--surface) !important;
     border: 1px solid var(--border2) !important;
     padding: 16px !important;
@@ -226,29 +226,32 @@ button.primary.generating {
     overflow-x: auto !important;
     margin: 14px 0 !important;
     border-radius: 2px !important;
+    font-family: 'Geist Mono', monospace !important;
 }
-.answer-block .prose hr {
+.answer-area .prose hr {
     border: none !important;
     border-top: 1px solid var(--border) !important;
     margin: 16px 0 !important;
 }
-.answer-block .prose em {
+.answer-area .prose em {
     color: var(--text-faint) !important;
     font-size: 11px !important;
     font-style: normal !important;
     font-family: 'Geist Mono', monospace !important;
 }
-.answer-block .prose strong { color: var(--text) !important; }
+.answer-area .prose strong { color: var(--text) !important; }
 
-/* ── Right panel ── */
-.right-panel {
-    display: flex;
-    flex-direction: column;
+/* ── Right column ── */
+.right-col {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
 }
 
-.examples-block {
-    padding: 20px 20px 16px;
-    border-bottom: 1px solid var(--border);
+.examples-area {
+    padding: 16px 18px !important;
+    border-bottom: 1px solid var(--border) !important;
+    flex-shrink: 0 !important;
 }
 
 button.secondary {
@@ -265,6 +268,7 @@ button.secondary {
     width: 100% !important;
     margin-bottom: 5px !important;
     transition: all .1s !important;
+    white-space: normal !important;
 }
 button.secondary:hover {
     color: var(--text) !important;
@@ -272,56 +276,46 @@ button.secondary:hover {
     background: var(--surface) !important;
 }
 
-/* Sources panel */
-.sources-block {
-    padding: 20px;
-    flex: 1;
-    overflow-y: auto;
+/* Sources */
+.sources-area {
+    padding: 16px 18px !important;
+    flex: 1 !important;
+    overflow-y: auto !important;
 }
-.sources-block .prose p {
+.sources-area .prose p {
     font-family: 'Geist Mono', monospace !important;
     font-size: 11px !important;
     color: var(--text-dim) !important;
-    line-height: 1.8 !important;
-    margin-bottom: 10px !important;
-    padding-bottom: 10px !important;
+    line-height: 1.7 !important;
+    margin-bottom: 12px !important;
+    padding-bottom: 12px !important;
     border-bottom: 1px solid var(--border) !important;
     word-break: break-all !important;
 }
-.sources-block .prose p:last-child { border-bottom: none !important; }
-.sources-block .prose a {
-    color: var(--blue) !important;
-    text-decoration: none !important;
+.sources-area .prose p:last-child {
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
 }
-.sources-block .prose a:hover { color: #93c5fd !important; }
-.sources-block .prose strong {
+.sources-area .prose strong {
     color: var(--text) !important;
     display: block !important;
     font-size: 11px !important;
-    margin-bottom: 2px !important;
+    margin-bottom: 4px !important;
+    font-weight: 500 !important;
 }
-
-/* Stat bar */
-.stat-bar {
-    padding: 14px 20px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+.sources-area .prose a {
+    color: var(--blue) !important;
+    text-decoration: none !important;
+    font-size: 10px !important;
 }
-.stat-row {
-    display: flex;
-    justify-content: space-between;
-    font-family: 'Geist Mono', monospace;
-    font-size: 10px;
-}
-.stat-key { color: var(--text-faint); }
-.stat-val { color: var(--text-dim); }
+.sources-area .prose a:hover { color: #93c5fd !important; }
 
 /* Hide Gradio chrome */
-footer, .show-api, #component-0 > .gap { display: none !important; }
-.contain { padding: 0 !important; gap: 0 !important; }
-::-webkit-scrollbar { width: 3px; }
+footer { display: none !important; }
+.show-api { display: none !important; }
+
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); }
 """
 
@@ -340,83 +334,92 @@ def run_pipeline(question: str):
         yield "—", "", ""
         return
 
-    # Stage 1 — retrieval
+    # Stage 1
     yield (
         "`→` hybrid search (bm25 + semantic)  \n"
         "`·` cross-encoder reranking  \n"
         "`·` llm generation  \n"
         "`·` citation validation",
-        "", ""
+        "*Running...*", ""
     )
 
     t0 = time.time()
     raw_chunks = hybrid_search(question, k=10)
     retrieval_ms = (time.time() - t0) * 1000
 
-    # Stage 2 — reranking
+    # Stage 2
     yield (
         f"`✓` hybrid search — {len(raw_chunks)} candidates · {retrieval_ms:.0f}ms  \n"
         "`→` cross-encoder reranking  \n"
         "`·` llm generation  \n"
         "`·` citation validation",
-        "", ""
+        "*Reranking...*", ""
     )
 
     t1 = time.time()
     chunks = rerank(question, raw_chunks, top_k=5)
     rerank_ms = (time.time() - t1) * 1000
 
-    # Stage 3 — generation
+    # Stage 3
     yield (
         f"`✓` hybrid search — {len(raw_chunks)} candidates · {retrieval_ms:.0f}ms  \n"
         f"`✓` reranking — top 5 selected · {rerank_ms:.0f}ms  \n"
-        "`→` llm generation (llama-3.3-70b-versatile)  \n"
+        "`→` llm generation (llama-3.3-70b)  \n"
         "`·` citation validation",
-        "", ""
+        "*Generating answer...*", ""
     )
 
     result = rag_query(question)
-    answer = result["answer"]
-    gen_ms = result["latency"]["generation_ms"]
+    answer = result.answer
+    gen_ms = result.latency["generation_ms"]
 
-    if result["insufficient_context"]:
+    if result.insufficient_context:
         answer = "The retrieved documentation does not contain sufficient information to answer this question."
 
-    # Stage 4 — citations
-    valid_cites = [c for c in result["citations"] if c["valid"]]
-    cite_status = f"{len(valid_cites)} citation(s) validated" if valid_cites else "no citations — INSUFFICIENT_CONTEXT"
-
+    valid_cites = [c for c in result.citations if c.valid]
+    cite_status = (
+        f"{len(valid_cites)} citation(s) validated"
+        if valid_cites else "no citations — INSUFFICIENT_CONTEXT"
+    )
     total_ms = retrieval_ms + rerank_ms + gen_ms
 
     trace = (
         f"`✓` hybrid search — {len(raw_chunks)} candidates · {retrieval_ms:.0f}ms  \n"
         f"`✓` reranking — top 5 selected · {rerank_ms:.0f}ms  \n"
-        f"`✓` llm generation — {result['tokens_used']} tokens · {gen_ms:.0f}ms  \n"
+        f"`✓` llm generation — {result.tokens_used} tokens · {gen_ms:.0f}ms  \n"
         f"`✓` citation validation — {cite_status}  \n\n"
-        f"*total {total_ms:.0f}ms · prompt/{result['prompt_version']} · {result['model']}*"
+        f"*total {total_ms:.0f}ms · prompt/{result.prompt_version} · {result.model}*"
     )
 
-    # Format answer with clean meta line
     meta = (
         f"\n\n---\n"
         f"*retrieval {retrieval_ms:.0f}ms · "
         f"rerank {rerank_ms:.0f}ms · "
         f"generation {gen_ms:.0f}ms · "
-        f"{result['tokens_used']} tokens*"
+        f"{result.tokens_used} tokens*"
     )
 
-    # Format sources as titled entries, not [1][2]
+    # Format sources with proper titles
     seen = set()
     source_parts = []
-    for c in result["citations"]:
-        if c["valid"] and c["source_url"] not in seen:
-            seen.add(c["source_url"])
-            # Extract a clean page name from the URL
-            page = c["source_url"].rstrip("/").split("/")[-1].replace("_", " ").replace("-", " ").title()
-            section = c["source_url"].split("/docs/")[-1].split("/")[0].upper() if "/docs/" in c["source_url"] else ""
+    for c in result.citations:
+        if c.valid and c.source_url not in seen:
+            seen.add(c.source_url)
+            page = (
+                c.source_url.rstrip("/")
+                .split("/")[-1]
+                .replace("_", " ")
+                .replace("-", " ")
+                .title()
+            )
+            section = (
+                c.source_url.split("/docs/")[-1].split("/")[0].upper()
+                if "/docs/" in c.source_url else ""
+            )
+            label = f"{section} — {page}" if section else page
             source_parts.append(
-                f"**{section} — {page}**  \n"
-                f"[{c['source_url']}]({c['source_url']})"
+                f"**{label}**  \n"
+                f"[{c.source_url}]({c.source_url})"
             )
 
     sources = "\n\n".join(source_parts) if source_parts else "*No sources cited.*"
@@ -426,12 +429,12 @@ def run_pipeline(question: str):
 
 with gr.Blocks(css=CSS, title="HF Docs RAG") as demo:
 
-    # Header
     gr.HTML("""
     <div class="hdr">
         <span class="hdr-title">HF Docs RAG</span>
+        <div class="hdr-sep"></div>
         <span class="hdr-sub">Retrieval-augmented generation over HuggingFace documentation</span>
-        <div class="hdr-tags">
+        <div class="hdr-chips">
             <span class="chip">BM25 + Semantic</span>
             <span class="chip">Cross-encoder Rerank</span>
             <span class="chip">Citation Enforced</span>
@@ -440,12 +443,11 @@ with gr.Blocks(css=CSS, title="HF Docs RAG") as demo:
     </div>
     """)
 
-    with gr.Row(elem_classes=["main-grid"]):
+    with gr.Row(elem_classes=["body-grid"]):
 
-        # Left panel
-        with gr.Column(elem_classes=["left-panel"]):
+        with gr.Column(elem_classes=["left-col"]):
 
-            with gr.Group(elem_classes=["query-block"]):
+            with gr.Group(elem_classes=["query-area"]):
                 gr.HTML('<div class="field-label">Query</div>')
                 question = gr.Textbox(
                     show_label=False,
@@ -454,31 +456,30 @@ with gr.Blocks(css=CSS, title="HF Docs RAG") as demo:
                 )
                 submit = gr.Button("Run Query →", variant="primary")
 
-            with gr.Group(elem_classes=["trace-block"]):
+            with gr.Group(elem_classes=["trace-area"]):
                 gr.HTML('<div class="field-label">Pipeline Trace</div>')
                 trace_out = gr.Markdown(
                     value="*Waiting for query...*",
                     elem_classes=["prose"],
                 )
 
-            with gr.Group(elem_classes=["answer-block"]):
+            with gr.Group(elem_classes=["answer-area"]):
                 gr.HTML('<div class="field-label">Answer</div>')
                 answer_out = gr.Markdown(elem_classes=["prose"])
 
-        # Right panel
-        with gr.Column(elem_classes=["right-panel"]):
+        with gr.Column(elem_classes=["right-col"]):
 
-            with gr.Group(elem_classes=["examples-block"]):
+            with gr.Group(elem_classes=["examples-area"]):
                 gr.HTML('<div class="field-label">Examples</div>')
                 for ex in EXAMPLES:
                     gr.Button(ex, variant="secondary", size="sm").click(
                         fn=lambda q=ex: q, outputs=question
                     )
 
-            with gr.Group(elem_classes=["sources-block"]):
+            with gr.Group(elem_classes=["sources-area"]):
                 gr.HTML('<div class="field-label">Sources</div>')
                 sources_out = gr.Markdown(
-                    value="*Sources appear here after a query.*",
+                    value="*Sources appear after a query.*",
                     elem_classes=["prose"],
                 )
 

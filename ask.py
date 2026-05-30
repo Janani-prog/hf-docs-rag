@@ -11,12 +11,14 @@ print("-" * 60)
 
 result = query(question)
 
-print(result["answer"])
+print(result.answer)
 print("\n" + "-" * 60)
-print(f"Citations valid: {result['citation_valid']}")
-print(f"Tokens used: {result['tokens_used']}")
-print(f"Prompt version: {result['prompt_version']}")
+print(f"Citations valid: {result.citation_valid}")
+print(f"Tokens used:     {result.tokens_used}")
+print(f"Prompt version:  {result.prompt_version}")
+print(f"Retrieval:       {result.latency['retrieval_ms']:.0f}ms")
+print(f"Generation:      {result.latency['generation_ms']:.0f}ms")
 print(f"\nSources:")
-for c in result["citations"]:
-    if c["valid"]:
-        print(f"  [{c['number']}] {c['title']} — {c['source_url']}")
+for c in result.citations:
+    if c.valid:
+        print(f"  [{c.number}] {c.title} — {c.source_url}")
