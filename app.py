@@ -8,7 +8,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def ensure_vector_store():
     if not os.path.exists("chroma_db"):
-        print("Building vector store...")
         from src.ingestion.scraper import run as scrape
         from src.ingestion.chunker import run as chunk
         from src.ingestion.embedder import run as embed
@@ -23,399 +22,475 @@ from src.retrieval.hybrid import search as hybrid_search
 from src.retrieval.reranker import rerank
 from src.retrieval.generator import query as rag_query
 
-CUSTOM_CSS = """
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+CSS = """
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500&display=swap');
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --bg:        #080808;
+    --surface:   #101010;
+    --border:    #1f1f1f;
+    --border2:   #2a2a2a;
+    --text:      #e8e8e8;
+    --text-dim:  #888;
+    --text-faint:#444;
+    --accent:    #e8e8e8;
+    --green:     #4ade80;
+    --amber:     #fbbf24;
+    --blue:      #60a5fa;
+    --red:       #f87171;
+}
 
-body, .gradio-container {
-    background: #0d0d0d !important;
-    color: #f5f5f5 !important;
-    font-family: 'IBM Plex Sans', sans-serif !important;
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, .gradio-container {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+    font-family: 'Geist', sans-serif !important;
+    font-size: 14px !important;
 }
 
 .gradio-container {
-    max-width: 1000px !important;
+    max-width: 1100px !important;
     margin: 0 auto !important;
-    padding: 48px 32px !important;
+    padding: 0 !important;
 }
 
-.header-block {
-    border-bottom: 1px solid #2a2a2a;
-    padding-bottom: 28px;
-    margin-bottom: 36px;
+/* ── Header ── */
+.hdr {
+    padding: 28px 36px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
 }
-
-.header-block h1 {
-    font-family: 'IBM Plex Mono', monospace !important;
-    font-size: 20px !important;
-    font-weight: 500 !important;
-    color: #f0f0f0 !important;
-    letter-spacing: 0.06em !important;
-    text-transform: uppercase !important;
-    margin-bottom: 10px !important;
-}
-
-.header-block p {
-    font-size: 14px !important;
-    color: #888 !important;
-    font-family: 'IBM Plex Sans', sans-serif !important;
-    line-height: 1.7 !important;
-    max-width: 560px !important;
-}
-
-.tag {
-    display: inline-block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    color: #bdbdbd;
-    border: 1px solid #2a2a2a;
-    padding: 3px 9px;
-    margin-right: 6px;
-    margin-top: 14px;
-    letter-spacing: 0.05em;
+.hdr-title {
+    font-family: 'Geist Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: .12em;
     text-transform: uppercase;
 }
-
-.section-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    color: #555;
+.hdr-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1;
+}
+.hdr-tags {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+.chip {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .08em;
     text-transform: uppercase;
-    letter-spacing: 0.14em;
-    margin-bottom: 10px;
+    color: var(--text-faint);
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+}
+
+/* ── Main layout ── */
+.main-grid {
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    min-height: calc(100vh - 73px);
+}
+
+/* ── Left panel ── */
+.left-panel {
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+}
+
+.query-block {
+    padding: 24px 28px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.field-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 8px;
 }
 
 textarea {
-    background: #111 !important;
-    border: 1px solid #2a2a2a !important;
-    border-radius: 0 !important;
-    color: #e8e8e8 !important;
-    font-family: 'IBM Plex Mono', monospace !important;
-    font-size: 14px !important;
-    padding: 14px 16px !important;
-    transition: border-color 0.15s !important;
+    width: 100% !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--border2) !important;
+    border-radius: 2px !important;
+    color: var(--text) !important;
+    font-family: 'Geist Mono', monospace !important;
+    font-size: 13px !important;
+    line-height: 1.65 !important;
+    padding: 12px 14px !important;
     resize: none !important;
-    line-height: 1.6 !important;
+    transition: border-color .12s !important;
 }
-
 textarea:focus {
-    border-color: #555 !important;
+    border-color: #3a3a3a !important;
     outline: none !important;
     box-shadow: none !important;
 }
+textarea::placeholder { color: var(--text-faint) !important; }
 
+/* Run button */
 button.primary {
-    background: #f0f0f0 !important;
-    color: #0d0d0d !important;
-    border: none !important;
-    border-radius: 0 !important;
-    font-family: 'IBM Plex Mono', monospace !important;
-    font-size: 12px !important;
-    font-weight: 500 !important;
-    letter-spacing: 0.08em !important;
-    text-transform: uppercase !important;
-    padding: 13px 32px !important;
-    cursor: pointer !important;
-    transition: background 0.15s !important;
-    margin-top: 10px !important;
-}
-
-button.primary:hover { background: #d8d8d8 !important; }
-button.primary:disabled {
-    background: #222 !important;
-    color: #555 !important;
-    cursor: not-allowed !important;
-}
-
-button.secondary {
-    background: transparent !important;
-    color: #666 !important;
-    border: 1px solid #1e1e1e !important;
-    border-radius: 0 !important;
-    font-family: 'IBM Plex Mono', monospace !important;
-    font-size: 11px !important;
-    padding: 7px 10px !important;
-    cursor: pointer !important;
-    transition: all 0.15s !important;
-    text-align: left !important;
+    margin-top: 12px !important;
     width: 100% !important;
-    margin-bottom: 5px !important;
-    line-height: 1.5 !important;
+    background: var(--text) !important;
+    color: var(--bg) !important;
+    border: none !important;
+    border-radius: 2px !important;
+    font-family: 'Geist Mono', monospace !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: .12em !important;
+    text-transform: uppercase !important;
+    padding: 13px !important;
+    cursor: pointer !important;
+    position: relative !important;
+    transition: background .12s !important;
+}
+button.primary:hover  { background: #d0d0d0 !important; }
+button.primary:active { background: #b8b8b8 !important; }
+
+/* Loading pulse on button */
+button.primary.generating {
+    background: var(--surface) !important;
+    color: var(--text-dim) !important;
+    border: 1px solid var(--border2) !important;
+    animation: pulse-btn 1.4s ease-in-out infinite !important;
+}
+@keyframes pulse-btn {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: .5; }
 }
 
-button.secondary:hover {
-    color: #bbb !important;
-    border-color: #333 !important;
-    background: #111 !important;
+/* Pipeline trace */
+.trace-block {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.trace-block .prose,
+.trace-block .prose * {
+    font-family: 'Geist Mono', monospace !important;
+    font-size: 12px !important;
+    line-height: 2 !important;
+    color: var(--text-dim) !important;
+    background: transparent !important;
+    border: none !important;
+}
+.trace-block .prose code {
+    font-family: 'Geist Mono', monospace !important;
+    font-size: 11px !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    padding: 1px 6px !important;
+    border-radius: 2px !important;
+    color: var(--text-dim) !important;
 }
 
-/* Pipeline trace panel */
-.pipeline-panel {
-    background: #0a0a0a;
-    border: 1px solid #1e1e1e;
-    padding: 16px 20px;
-    margin-top: 8px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    line-height: 2;
-    color: #c0c0c0;
-    min-height: 80px;
+/* Answer */
+.answer-block {
+    padding: 24px 28px;
+    flex: 1;
 }
-
-.pipeline-panel .step-done { color: #6a9955; }
-.pipeline-panel .step-active { color: #f5f5f5; }
-.pipeline-panel .step-pending { color: #333; }
-
-/* Answer panel */
-.prose {
-    background: #121212 !important;
-    border: 1px solid #3a3a3a !important;
-    padding: 20px !important;
-    min-height: 100px !important;
-}
-
-.prose p {
-    color: #fafafa  !important;
+.answer-block .prose p {
+    color: var(--text) !important;
     font-size: 14px !important;
     line-height: 1.85 !important;
     margin-bottom: 14px !important;
 }
-
-.prose code {
-    font-family: 'IBM Plex Mono', monospace !important;
+.answer-block .prose code {
+    font-family: 'Geist Mono', monospace !important;
     font-size: 12px !important;
-    background: #141414 !important;
-    border: 1px solid #222 !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--border2) !important;
     padding: 2px 7px !important;
-    color: #9cdcfe !important;
+    color: var(--blue) !important;
 }
-
-.prose pre {
-    background: #0f0f0f !important;
-    border: 1px solid #1e1e1e !important;
+.answer-block .prose pre {
+    background: var(--surface) !important;
+    border: 1px solid var(--border2) !important;
     padding: 16px !important;
     font-size: 12px !important;
     overflow-x: auto !important;
     margin: 14px 0 !important;
+    border-radius: 2px !important;
 }
-
-.prose hr {
+.answer-block .prose hr {
     border: none !important;
-    border-top: 1px solid #1e1e1e !important;
+    border-top: 1px solid var(--border) !important;
     margin: 16px 0 !important;
 }
-
-.prose em { color: #888 !important; font-size: 11px !important; }
-
-/* Sources */
-.sources-panel {
-    background: #0a0a0a !important;
-    border: 1px solid #1e1e1e !important;
-    padding: 16px 20px !important;
-    min-height: 60px !important;
-}
-
-.sources-panel p {
-    font-family: 'IBM Plex Mono', monospace !important;
+.answer-block .prose em {
+    color: var(--text-faint) !important;
     font-size: 11px !important;
-    color: #d0d0d0  !important;
-    line-height: 2 !important;
+    font-style: normal !important;
+    font-family: 'Geist Mono', monospace !important;
+}
+.answer-block .prose strong { color: var(--text) !important; }
+
+/* ── Right panel ── */
+.right-panel {
+    display: flex;
+    flex-direction: column;
 }
 
-.sources-panel a {
-    color: #7a9ec2 !important;
+.examples-block {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+button.secondary {
+    background: transparent !important;
+    color: var(--text-dim) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 2px !important;
+    font-family: 'Geist Mono', monospace !important;
+    font-size: 10px !important;
+    line-height: 1.5 !important;
+    padding: 8px 10px !important;
+    cursor: pointer !important;
+    text-align: left !important;
+    width: 100% !important;
+    margin-bottom: 5px !important;
+    transition: all .1s !important;
+}
+button.secondary:hover {
+    color: var(--text) !important;
+    border-color: var(--border2) !important;
+    background: var(--surface) !important;
+}
+
+/* Sources panel */
+.sources-block {
+    padding: 20px;
+    flex: 1;
+    overflow-y: auto;
+}
+.sources-block .prose p {
+    font-family: 'Geist Mono', monospace !important;
+    font-size: 11px !important;
+    color: var(--text-dim) !important;
+    line-height: 1.8 !important;
+    margin-bottom: 10px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid var(--border) !important;
+    word-break: break-all !important;
+}
+.sources-block .prose p:last-child { border-bottom: none !important; }
+.sources-block .prose a {
+    color: var(--blue) !important;
     text-decoration: none !important;
 }
+.sources-block .prose a:hover { color: #93c5fd !important; }
+.sources-block .prose strong {
+    color: var(--text) !important;
+    display: block !important;
+    font-size: 11px !important;
+    margin-bottom: 2px !important;
+}
 
-.sources-panel a:hover { color: #a0bcd8 !important; }
+/* Stat bar */
+.stat-bar {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+}
+.stat-key { color: var(--text-faint); }
+.stat-val { color: var(--text-dim); }
 
-hr { border: none; border-top: 1px solid #1a1a1a; margin: 32px 0; }
-footer { display: none !important; }
-.show-api { display: none !important; }
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #0d0d0d; }
-::-webkit-scrollbar-thumb { background: #2a2a2a; }
+/* Hide Gradio chrome */
+footer, .show-api, #component-0 > .gap { display: none !important; }
+.contain { padding: 0 !important; gap: 0 !important; }
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border2); }
 """
-
-
-def run_pipeline(question: str):
-    """
-    Generator function — yields pipeline status updates as each stage
-    completes, then yields the final answer. Gradio streams these live.
-    """
-    if not question.strip():
-        yield "", "", ""
-        return
-
-    # Stage 1
-    pipeline_log = (
-        "**Pipeline Trace**\n\n"
-        "`→` Hybrid search (BM25 + semantic)...  \n"
-        "`·` Cross-encoder reranking  \n"
-        "`·` LLM generation  \n"
-        "`·` Citation validation  \n"
-    )
-    yield pipeline_log, "", ""
-
-    t0 = time.time()
-    raw_chunks = hybrid_search(question, k=10)
-    retrieval_ms = (time.time() - t0) * 1000
-
-    # Stage 2
-    pipeline_log = (
-        "**Pipeline Trace**\n\n"
-        f"`✓` Hybrid search — {len(raw_chunks)} candidates "
-        f"in {retrieval_ms:.0f}ms  \n"
-        "`→` Cross-encoder reranking...  \n"
-        "`·` LLM generation  \n"
-        "`·` Citation validation  \n"
-    )
-    yield pipeline_log, "", ""
-
-    t1 = time.time()
-    chunks = rerank(question, raw_chunks, top_k=5)
-    rerank_ms = (time.time() - t1) * 1000
-
-    top_sources = list({c["source_url"].split("/")[-1] for c in chunks[:3]})
-
-    # Stage 3
-    pipeline_log = (
-        "**Pipeline Trace**\n\n"
-        f"`✓` Hybrid search — {len(raw_chunks)} candidates "
-        f"in {retrieval_ms:.0f}ms  \n"
-        f"`✓` Reranking — top 5 selected in {rerank_ms:.0f}ms  \n"
-        f"`→` LLM generation (llama-3.3-70b)...  \n"
-        "`·` Citation validation  \n"
-    )
-    yield pipeline_log, "", ""
-
-    result = rag_query(question)
-    answer = result["answer"]
-
-    if result["insufficient_context"]:
-        answer = "The retrieved documentation does not contain sufficient information to answer this question."
-
-    # Stage 4
-    valid_citations = [c for c in result["citations"] if c["valid"]]
-    pipeline_log = (
-        "**Pipeline Trace**\n\n"
-        f"`✓` Hybrid search — {len(raw_chunks)} candidates "
-        f"in {retrieval_ms:.0f}ms  \n"
-        f"`✓` Reranking — top 5 selected in {rerank_ms:.0f}ms  \n"
-        f"`✓` LLM generation — {result['tokens_used']} tokens, "
-        f"{result['latency']['generation_ms']:.0f}ms  \n"
-        f"`→` Citation validation...  \n"
-    )
-    yield pipeline_log, "", ""
-
-    # Final
-    citation_status = (
-        f"{len(valid_citations)} valid citation(s)"
-        if valid_citations else "no citations — INSUFFICIENT_CONTEXT"
-    )
-    total_ms = retrieval_ms + rerank_ms + result["latency"]["generation_ms"]
-
-    pipeline_log = (
-        "**Pipeline Trace**\n\n"
-        f"`✓` Hybrid search — {len(raw_chunks)} candidates "
-        f"in {retrieval_ms:.0f}ms  \n"
-        f"`✓` Reranking — top 5 selected in {rerank_ms:.0f}ms  \n"
-        f"`✓` LLM generation — {result['tokens_used']} tokens, "
-        f"{result['latency']['generation_ms']:.0f}ms  \n"
-        f"`✓` Citation validation — {citation_status}  \n\n"
-        f"*Total: {total_ms:.0f}ms · "
-        f"Prompt: {result['prompt_version']} · "
-        f"Model: {result['model']}*"
-    )
-
-    latency = result.get("latency", {})
-    meta = (
-        f"\n\n---\n"
-        f"*`retrieval {retrieval_ms:.0f}ms` &nbsp;"
-        f"`rerank {rerank_ms:.0f}ms` &nbsp;"
-        f"`generation {latency.get('generation_ms', 0):.0f}ms` &nbsp;"
-        f"`{result['tokens_used']} tokens`*"
-    )
-
-    seen = set()
-    source_lines = []
-    for c in result["citations"]:
-        if c["valid"] and c["source_url"] not in seen:
-            seen.add(c["source_url"])
-            source_lines.append(
-                f"[{c['source_url']}]({c['source_url']})"
-            )
-    sources = "\n\n".join(source_lines) if source_lines else "*No sources cited.*"
-
-    yield pipeline_log, answer + meta, sources
-
 
 EXAMPLES = [
     "How do I load a dataset in streaming mode?",
     "What is the difference between map-style and iterable datasets?",
     "How does LoRA reduce the number of trainable parameters?",
     "How do I apply a function to every example in a dataset?",
-    "How do I save a fine-tuned model locally?",
+    "How do I save a fine-tuned model to disk?",
+    "What does Arrow format provide to HuggingFace Datasets?",
 ]
 
-with gr.Blocks(css=CUSTOM_CSS, title="HF Docs RAG") as demo:
 
-    gr.Markdown("""
-<div class="header-block">
-<h1>HF Docs RAG</h1>
-<p>Production-grade retrieval-augmented generation over HuggingFace documentation.
-Answers are grounded in retrieved source passages. Every claim is cited.</p>
-<span class="tag">Hybrid BM25 + Semantic Search</span>
-<span class="tag">Cross-encoder Reranking</span>
-<span class="tag">Citation Enforcement</span>
-<span class="tag">Groq / Llama 3.3-70b</span>
-</div>
-""")
+def run_pipeline(question: str):
+    if not question.strip():
+        yield "—", "", ""
+        return
 
-    
-    gr.Markdown("### Query")
-
-    question = gr.Textbox(
-        show_label=False,
-        placeholder="Ask a question about Transformers, Datasets, PEFT, or Tokenizers...",
-        lines=3,
+    # Stage 1 — retrieval
+    yield (
+        "`→` hybrid search (bm25 + semantic)  \n"
+        "`·` cross-encoder reranking  \n"
+        "`·` llm generation  \n"
+        "`·` citation validation",
+        "", ""
     )
 
-    submit = gr.Button("Run Query", variant="primary")
+    t0 = time.time()
+    raw_chunks = hybrid_search(question, k=10)
+    retrieval_ms = (time.time() - t0) * 1000
 
-    gr.Markdown("### Examples")
-
-    for ex in EXAMPLES:
-        gr.Button(ex, variant="secondary", size="sm").click(
-            fn=lambda q=ex: q,
-            outputs=question,
-        )
-
-    gr.Markdown("### Pipeline Trace")
-
-    pipeline_out = gr.Markdown(
-        value="*Waiting for query...*",
-        elem_classes=["pipeline-panel"]
+    # Stage 2 — reranking
+    yield (
+        f"`✓` hybrid search — {len(raw_chunks)} candidates · {retrieval_ms:.0f}ms  \n"
+        "`→` cross-encoder reranking  \n"
+        "`·` llm generation  \n"
+        "`·` citation validation",
+        "", ""
     )
 
-    gr.Markdown("### Answer")
+    t1 = time.time()
+    chunks = rerank(question, raw_chunks, top_k=5)
+    rerank_ms = (time.time() - t1) * 1000
 
-    answer_out = gr.Markdown(elem_classes=["prose"])
+    # Stage 3 — generation
+    yield (
+        f"`✓` hybrid search — {len(raw_chunks)} candidates · {retrieval_ms:.0f}ms  \n"
+        f"`✓` reranking — top 5 selected · {rerank_ms:.0f}ms  \n"
+        "`→` llm generation (llama-3.3-70b-versatile)  \n"
+        "`·` citation validation",
+        "", ""
+    )
 
-    gr.Markdown("### Sources")
-    sources_out = gr.Markdown(elem_classes=["sources-panel"])
+    result = rag_query(question)
+    answer = result["answer"]
+    gen_ms = result["latency"]["generation_ms"]
 
+    if result["insufficient_context"]:
+        answer = "The retrieved documentation does not contain sufficient information to answer this question."
+
+    # Stage 4 — citations
+    valid_cites = [c for c in result["citations"] if c["valid"]]
+    cite_status = f"{len(valid_cites)} citation(s) validated" if valid_cites else "no citations — INSUFFICIENT_CONTEXT"
+
+    total_ms = retrieval_ms + rerank_ms + gen_ms
+
+    trace = (
+        f"`✓` hybrid search — {len(raw_chunks)} candidates · {retrieval_ms:.0f}ms  \n"
+        f"`✓` reranking — top 5 selected · {rerank_ms:.0f}ms  \n"
+        f"`✓` llm generation — {result['tokens_used']} tokens · {gen_ms:.0f}ms  \n"
+        f"`✓` citation validation — {cite_status}  \n\n"
+        f"*total {total_ms:.0f}ms · prompt/{result['prompt_version']} · {result['model']}*"
+    )
+
+    # Format answer with clean meta line
+    meta = (
+        f"\n\n---\n"
+        f"*retrieval {retrieval_ms:.0f}ms · "
+        f"rerank {rerank_ms:.0f}ms · "
+        f"generation {gen_ms:.0f}ms · "
+        f"{result['tokens_used']} tokens*"
+    )
+
+    # Format sources as titled entries, not [1][2]
+    seen = set()
+    source_parts = []
+    for c in result["citations"]:
+        if c["valid"] and c["source_url"] not in seen:
+            seen.add(c["source_url"])
+            # Extract a clean page name from the URL
+            page = c["source_url"].rstrip("/").split("/")[-1].replace("_", " ").replace("-", " ").title()
+            section = c["source_url"].split("/docs/")[-1].split("/")[0].upper() if "/docs/" in c["source_url"] else ""
+            source_parts.append(
+                f"**{section} — {page}**  \n"
+                f"[{c['source_url']}]({c['source_url']})"
+            )
+
+    sources = "\n\n".join(source_parts) if source_parts else "*No sources cited.*"
+
+    yield trace, answer + meta, sources
+
+
+with gr.Blocks(css=CSS, title="HF Docs RAG") as demo:
+
+    # Header
+    gr.HTML("""
+    <div class="hdr">
+        <span class="hdr-title">HF Docs RAG</span>
+        <span class="hdr-sub">Retrieval-augmented generation over HuggingFace documentation</span>
+        <div class="hdr-tags">
+            <span class="chip">BM25 + Semantic</span>
+            <span class="chip">Cross-encoder Rerank</span>
+            <span class="chip">Citation Enforced</span>
+            <span class="chip">Groq · Llama 3.3-70b</span>
+        </div>
+    </div>
+    """)
+
+    with gr.Row(elem_classes=["main-grid"]):
+
+        # Left panel
+        with gr.Column(elem_classes=["left-panel"]):
+
+            with gr.Group(elem_classes=["query-block"]):
+                gr.HTML('<div class="field-label">Query</div>')
+                question = gr.Textbox(
+                    show_label=False,
+                    placeholder="Ask anything about Transformers, Datasets, PEFT, or Tokenizers...",
+                    lines=3,
+                )
+                submit = gr.Button("Run Query →", variant="primary")
+
+            with gr.Group(elem_classes=["trace-block"]):
+                gr.HTML('<div class="field-label">Pipeline Trace</div>')
+                trace_out = gr.Markdown(
+                    value="*Waiting for query...*",
+                    elem_classes=["prose"],
+                )
+
+            with gr.Group(elem_classes=["answer-block"]):
+                gr.HTML('<div class="field-label">Answer</div>')
+                answer_out = gr.Markdown(elem_classes=["prose"])
+
+        # Right panel
+        with gr.Column(elem_classes=["right-panel"]):
+
+            with gr.Group(elem_classes=["examples-block"]):
+                gr.HTML('<div class="field-label">Examples</div>')
+                for ex in EXAMPLES:
+                    gr.Button(ex, variant="secondary", size="sm").click(
+                        fn=lambda q=ex: q, outputs=question
+                    )
+
+            with gr.Group(elem_classes=["sources-block"]):
+                gr.HTML('<div class="field-label">Sources</div>')
+                sources_out = gr.Markdown(
+                    value="*Sources appear here after a query.*",
+                    elem_classes=["prose"],
+                )
 
     submit.click(
         fn=run_pipeline,
         inputs=question,
-        outputs=[pipeline_out, answer_out, sources_out],
+        outputs=[trace_out, answer_out, sources_out],
     )
     question.submit(
         fn=run_pipeline,
         inputs=question,
-        outputs=[pipeline_out, answer_out, sources_out],
+        outputs=[trace_out, answer_out, sources_out],
     )
 
 if __name__ == "__main__":
