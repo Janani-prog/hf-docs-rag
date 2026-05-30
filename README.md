@@ -81,14 +81,16 @@ Everything runs free. No paid APIs beyond Groq's free tier.
 
 Evaluation runs automatically on every push via GitHub Actions against a curated golden dataset of 12 question-answer pairs covering factual queries, multi-hop questions, and unanswerable questions.
 
-| Metric | Score | Threshold |
-|---|---|---|
-| Faithfulness | 0.60 | 0.70 |
-| Answer Relevancy | 0.60 | 0.70 |
-| Context Precision | 0.58 | — |
+| Metric | Score | Threshold | Status |
+|---|---|---|---|
+| Faithfulness | 0.72 | 0.70 | PASS |
+| Answer Relevancy | 0.90 | 0.70 | PASS |
+| Context Precision | 0.57 | — | — |
 
-Scores are measured with an 8B eval model under free-tier rate limits. The thresholds are enforced in CI — a drop triggers build failure.
-
+Evaluated against 12 curated Q&A pairs covering factual queries, 
+multi-hop questions, and unanswerable questions. Scores measured 
+using llama-3.1-8b-instant as the eval model. CI fails automatically 
+if either gated metric drops below threshold.
 ---
 
 ## Production metrics
