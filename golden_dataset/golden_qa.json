@@ -1,62 +1,74 @@
 [
   {
-    "question": "How do I load a dataset in streaming mode?",
-    "ground_truth": "You can load a dataset in streaming mode by setting streaming=True in the load_dataset() function. This allows you to work with a dataset without downloading it.",
+    "question": "How do I load a dataset in streaming mode using load_dataset?",
+    "ground_truth": "Set streaming=True in the load_dataset() function. This creates an IterableDataset that streams data without downloading the full dataset first.",
     "source_urls": ["https://huggingface.co/docs/datasets/stream"],
     "category": "factual"
   },
   {
-    "question": "What is the difference between map-style and iterable datasets?",
-    "ground_truth": "Map-style datasets provide random access to rows and are suitable for smaller datasets. Iterable datasets are lazy, can only be iterated sequentially, and are ideal for large datasets.",
+    "question": "What is the difference between map-style and iterable datasets in HuggingFace?",
+    "ground_truth": "Map-style datasets support random access via index and are loaded fully into memory or disk. Iterable datasets are lazy and streamed sequentially, ideal for large datasets that do not fit in memory.",
     "source_urls": ["https://huggingface.co/docs/datasets/about_mapstyle_vs_iterable"],
     "category": "factual"
   },
   {
-    "question": "How do I apply a function to every example in a dataset?",
-    "ground_truth": "Use the map() method on a Dataset object, passing a function that takes a single example as input. You can also use batched=True for batch processing.",
+    "question": "How do I apply a processing function to every example in a HuggingFace dataset?",
+    "ground_truth": "Use the map() method on the Dataset object, passing a function that takes a single example dict as input and returns a modified dict. Use batched=True for batch processing.",
     "source_urls": ["https://huggingface.co/docs/datasets/about_map_batch"],
     "category": "factual"
   },
   {
-    "question": "What is LoRA and how does it reduce training parameters?",
-    "ground_truth": "LoRA is a parameter-efficient fine-tuning technique that freezes the original model weights and injects trainable low-rank decomposition matrices into each layer, drastically reducing the number of trainable parameters.",
-    "source_urls": ["https://huggingface.co/docs/peft"],
-    "category": "factual"
-  },
-  {
-    "question": "How does Arrow format benefit the Datasets library?",
-    "ground_truth": "Arrow enables zero-copy reads which removes virtually all serialization overhead, allows fast processing and movement of large amounts of data, and uses a columnar memory layout.",
+    "question": "What does Arrow format provide to the HuggingFace Datasets library?",
+    "ground_truth": "Arrow enables zero-copy reads which removes virtually all serialization overhead, stores data in a columnar memory layout, and allows fast processing and movement of large amounts of data.",
     "source_urls": ["https://huggingface.co/docs/datasets/about_arrow"],
     "category": "factual"
   },
   {
-    "question": "How do I filter a dataset to keep only certain examples?",
-    "ground_truth": "Use the filter() method on a Dataset, passing a function that returns True for examples to keep and False for examples to discard.",
+    "question": "How do I convert a HuggingFace Dataset to a pandas DataFrame?",
+    "ground_truth": "Use the to_pandas() method on a Dataset object. This returns a pandas DataFrame containing all the data.",
     "source_urls": ["https://huggingface.co/docs/datasets"],
     "category": "factual"
   },
   {
-    "question": "What is the capital of Mars?",
+    "question": "What is PEFT and what problem does it solve?",
+    "ground_truth": "PEFT stands for Parameter-Efficient Fine-Tuning. It provides methods to fine-tune large pretrained models using far fewer trainable parameters than full fine-tuning, reducing compute and memory requirements significantly.",
+    "source_urls": ["https://huggingface.co/docs/peft"],
+    "category": "factual"
+  },
+  {
+    "question": "How do I save a trained HuggingFace model to disk?",
+    "ground_truth": "Use the save_pretrained() method on the model object, passing the directory path where the model weights and configuration should be saved.",
+    "source_urls": ["https://huggingface.co/docs/transformers"],
+    "category": "factual"
+  },
+  {
+    "question": "How do I load a pretrained model from the HuggingFace Hub?",
+    "ground_truth": "Use from_pretrained() on the model class, passing the model name or path as a string. For example: AutoModel.from_pretrained('bert-base-uncased').",
+    "source_urls": ["https://huggingface.co/docs/transformers"],
+    "category": "factual"
+  },
+  {
+    "question": "What is the capital of Jupiter?",
     "ground_truth": "INSUFFICIENT_CONTEXT",
     "source_urls": [],
     "category": "unanswerable"
   },
   {
-    "question": "How do I convert a dataset to a pandas DataFrame?",
-    "ground_truth": "Use the to_pandas() method on a Dataset object to convert it to a pandas DataFrame.",
+    "question": "How do I filter a HuggingFace dataset to keep only examples matching a condition?",
+    "ground_truth": "Use the filter() method on the Dataset, passing a function that returns True for examples to keep and False for examples to discard.",
     "source_urls": ["https://huggingface.co/docs/datasets"],
     "category": "factual"
   },
   {
-    "question": "What tokenizer should I use with BERT models?",
-    "ground_truth": "Use the BertTokenizer or AutoTokenizer from the transformers library, which handles WordPiece tokenization used by BERT.",
-    "source_urls": ["https://huggingface.co/docs/transformers"],
+    "question": "What is an IterableDataset and when should I use it?",
+    "ground_truth": "An IterableDataset is a dataset that is read lazily and sequentially. Use it when working with very large datasets that do not fit in memory, or when loading data in streaming mode.",
+    "source_urls": ["https://huggingface.co/docs/datasets/about_mapstyle_vs_iterable"],
     "category": "factual"
   },
   {
-    "question": "How do I save a trained model locally?",
-    "ground_truth": "Use the save_pretrained() method on the model object, passing the directory path where you want to save the model weights and configuration.",
-    "source_urls": ["https://huggingface.co/docs/transformers"],
+    "question": "How does the batched parameter in the map() function improve performance?",
+    "ground_truth": "Setting batched=True passes a batch of examples as a dict of lists to the processing function instead of one example at a time, which is faster for operations like tokenization that benefit from batch processing.",
+    "source_urls": ["https://huggingface.co/docs/datasets/about_map_batch"],
     "category": "factual"
   }
 ]

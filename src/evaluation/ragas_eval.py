@@ -134,11 +134,21 @@ Respond with ONLY: yes or no"""
 
 
 def run_pipeline_on_question(question: str) -> tuple[str, list[str]]:
-    raw_chunks = hybrid_search(question, k=10)
-    chunks = rerank(question, raw_chunks, top_k=5)
-    contexts = [c["text"] for c in chunks]
-    result = rag_query(question)
-    return result["answer"], contexts
+    import time
+    for attempt in range(3):
+        try:
+            raw_chunks = hybrid_search(question, k=10)
+            chunks = rerank(question, raw_chunks, top_k=5)
+            contexts = [c["text"] for c in chunks]
+            result = rag_query(question)
+            return result["answer"], contexts
+        except Exception as e:
+            if "429" in str(e) and attempt < 2:
+                wait = 30 * (attempt + 1)
+                print(f"    Rate limited, retrying in {wait}s...")
+                time.sleep(wait)
+            else:
+                raise
 
 
 def evaluate_all(golden: list[dict]) -> list[dict]:
