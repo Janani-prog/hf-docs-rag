@@ -81,25 +81,23 @@ No explanation, just the JSON."""
 
 
 def score_answer_relevancy(question: str, answer: str) -> float:
-    """
-    Answer relevancy: does the answer actually address the question?
-    Score = 1.0 (fully relevant), 0.5 (partially), 0.0 (not relevant)
-    """
     if answer == "INSUFFICIENT_CONTEXT":
-        return 1.0  # correct refusal is relevant behavior
+        return 1.0
 
-    prompt = f"""Does the following answer address the question asked?
+    prompt = f"""Does the following answer address the question that was asked?
 
 QUESTION: {question}
 
 ANSWER: {answer}
 
-Rate relevancy as:
-- 1.0 if the answer directly and completely addresses the question
-- 0.5 if the answer is partially relevant or incomplete
-- 0.0 if the answer does not address the question at all
+Scoring guide:
+- 1.0: The answer directly addresses the question and provides correct information
+- 0.7: The answer addresses the question but is incomplete or could be more specific  
+- 0.5: The answer is only tangentially related to the question
+- 0.0: The answer does not address the question at all
 
-Respond with ONLY a number: 0.0, 0.5, or 1.0"""
+Most answers that contain correct information about the topic asked should score 0.7 or higher.
+Respond with ONLY a number: 0.0, 0.5, 0.7, or 1.0"""
 
     result = call_llm(prompt)
     try:
