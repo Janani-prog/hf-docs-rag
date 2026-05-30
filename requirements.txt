@@ -1,4 +1,4 @@
-﻿requests
+requests
 beautifulsoup4
 markdownify
 tqdm
@@ -16,6 +16,5 @@ langchain-openai
 ragas==0.1.21
 langfuse
 pydantic
-gradio
 pytest
 ruff
